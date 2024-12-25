@@ -1,0 +1,44 @@
+services:
+  php:
+    build:
+      context: .
+      dockerfile: config/php/Dockerfile
+    working_dir: /app
+    environment:
+      - WEB_DOCUMENT_ROOT=/app
+      - LOG_STDOUT=/var/log/stdout.log
+      - LOG_STDERR=/var/log/stderr.log
+    restart: unless-stopped
+    tty: true
+    ports:
+      - '8080:80'
+    volumes:
+      - ./src:/app:z
+      - ./logs/php:/var/log
+    depends_on:
+      - db
+      - phpmyadmin
+  db:
+    image: docker.io/mysql:latest
+    container_name: db
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: app_db
+      MYSQL_USER: user
+      MYSQL_PASSWORD: user
+    ports:
+      - "6033:3306"
+    volumes:
+      - dbdata:/var/lib/mysql
+  phpmyadmin:
+    image: docker.io/phpmyadmin/phpmyadmin
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      PMA_ARBITRARY: 1
+    restart: always
+    ports:
+      - '8081:80'
+
+volumes:
+  dbdata:
